@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tambah Pasien - dr Galih</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h2 { color: #667eea; margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-top: 15px; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; }
+        button { 
+            background: #667eea; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            cursor: pointer; 
+            width: 100%;
+        }
+        button:hover { background: #764ba2; }
+        .btn-back { display: inline-block; margin-top: 15px; color: #667eea; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>➕ Tambah Pasien Baru</h2>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">💾 Simpan Pasien</button>
+            </form>
+            <a href="/" class="btn-back">← Kembali ke Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>
