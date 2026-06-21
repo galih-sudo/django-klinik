@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daftar Pasien - dr Galih</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h2 { color: #667eea; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; color: #667eea; }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 12px;
+            display: inline-block;
+            margin: 2px;
+        }
+        .btn-success { background: #28a745; }
+        .btn-back { background: #6c757d; }
+        .btn:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>📋 Daftar Pasien</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No RM</th>
+                            <th>Nama</th>
+                            <th>Jenis Kelamin</th>
+                            <th>Alamat</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pasien in pasien_list %}
+                        <tr>
+                            <td><strong>{{ pasien.no_rm }}</strong></td>
+                            <td>{{ pasien.nama }}</td>
+                            <td>{{ pasien.get_jenis_kelamin_display|default:"-" }}</td>
+                            <td>{{ pasien.alamat|truncatechars:30 }}</td>
+                            <td>
+                                <a href="/admin/rekam_medis/pasien/{{ pasien.id }}/change/" class="btn">✏️ Edit</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #999;">Belum ada data pasien</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="/" class="btn btn-back">← Kembali ke Dashboard</a>
+                <a href="/pasien/tambah/" class="btn btn-success">➕ Tambah Pasien</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

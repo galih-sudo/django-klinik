@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Pasien - dr Galih</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; min-height: 100vh; }
+        .container { max-width: 700px; margin: 0 auto; }
+        .card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h2 { color: #667eea; margin-bottom: 5px; text-align: center; }
+        .subtitle { text-align: center; color: #764ba2; margin-bottom: 25px; font-size: 14px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; color: #333; margin-bottom: 5px; font-size: 13px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; font-family: inherit; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-back { display: block; text-align: center; margin-top: 15px; padding: 10px; background: #6c757d; color: white; text-decoration: none; border-radius: 10px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h2>✏️ Edit Pasien</h2>
+        <div class="subtitle">No RM: {{ pasien.no_rm }}</div>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">💾 Simpan Perubahan</button>
+        </form>
+        <a href="/pasien/" class="btn-back">← Kembali ke Daftar Pasien</a>
+    </div>
+</div>
+</body>
+</html>

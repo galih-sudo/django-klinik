@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Buat Resep - dr Galih</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h2 { color: #667eea; text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #764ba2; margin-bottom: 20px; font-size: 14px; }
+        label { display: block; font-weight: bold; margin-top: 12px; margin-bottom: 5px; }
+        select, input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 14px; }
+        button { width: 100%; padding: 10px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 15px; font-size: 16px; font-weight: bold; }
+        .btn-back { display: block; text-align: center; margin-top: 15px; padding: 8px; background: #6c757d; color: white; text-decoration: none; border-radius: 8px; }
+        .info { background: #e8f4f8; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h2>💊 Buat Resep</h2>
+        <div class="subtitle">Rekam Medis ID: {{ rekam.id }}</div>
+
+        <div class="info">
+            <p><strong>Pasien:</strong> {{ rekam.pasien.nama }}</p>
+            <p><strong>No RM:</strong> {{ rekam.pasien.no_rm }}</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <label>Pilih Obat</label>
+            <select name="obat_id" required>
+                <option value="">-- Pilih Obat --</option>
+                {% for obat in obat_list %}
+                <option value="{{ obat.id }}">{{ obat.nama }} (stok: {{ obat.stok }} {{ obat.satuan }})</option>
+                {% endfor %}
+            </select>
+
+            <label>Jumlah</label>
+            <input type="number" name="jumlah" placeholder="Jumlah" min="1" required>
+
+            <label>Aturan Pakai</label>
+            <input type="text" name="aturan" placeholder="Contoh: 3x1 tablet (setelah makan)" required>
+
+            <button type="submit">💾 Simpan Resep</button>
+        </form>
+        <a href="/pasien/" class="btn-back">← Kembali ke Daftar Pasien</a>
+    </div>
+</div>
+</body>
+</html>
