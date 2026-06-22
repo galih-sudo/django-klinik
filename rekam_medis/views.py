@@ -7,6 +7,9 @@ from .models import Pasien, Obat, Kunjungan, RekamMedis, ICD10, Profile
 from .forms import PasienForm, RekamMedisForm
 from .decorators import dokter_required, staf_required
 from django.db import models
+from django.http import HttpResponse
+from django.template.loader import get_template
+from weasyprint import HTML
 
 @login_required
 def dashboard(request):
@@ -286,6 +289,51 @@ def hapus_icd10(request, kode):
     icd = get_object_or_404(ICD10, kode=kode)
     icd.delete()
     return redirect('kelola_icd10')
+
+# ========== CETAK SURAT ==========
+@login_required
+@dokter_required
+def surat_sehat(request, pasien_id):
+    pasien = get_object_or_404(Pasien, id=pasien_id)
+    today = timezone.now().date()
+
+    context = {
+        'pasien': pasien,
+        'today': today,
+        'dokter': request.user,
+    }
+
+    template = get_template('rekam_medis/surat_sehat.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename=surat_sehat_{pasien.no_rm}.pdf'
+
+    HTML(string=html).write_pdf(response)
+    return response
+
+@login_required
+@dokter_required
+def surat_istirahat(request, pasien_id):
+    pasien = get_object_or_404(Pasien, id=pasien_id)
+    today = timezone.now().date()
+    lama = request.GET.get('lama', '3')
+
+    context = {
+        'pasien': pasien,
+        'today': today,
+        'lama': lama,
+        'dokter': request.user,
+    }
+
+    template = get_template('rekam_medis/surat_istirahat.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename=surat_istirahat_{pasien.no_rm}.pdf'
+
+    HTML(string=html).write_pdf(response)
+    return response
 
 # ========== MANAJEMEN USER ==========
 @login_required

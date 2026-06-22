@@ -29,6 +29,10 @@ urlpatterns = [
     path('users/edit/<int:user_id>/', views.edit_user, name='edit_user'),
     path('users/hapus/<int:user_id>/', views.hapus_user, name='hapus_user'),
 
+    # SURAT
+    path('surat/sehat/<int:pasien_id>/', views.surat_sehat, name='surat_sehat'),
+    path('surat/istirahat/<int:pasien_id>/', views.surat_istirahat, name='surat_istirahat'),
+
     # LOGOUT
     path('logout/', LogoutView.as_view(next_page='/accounts/login/'), name='logout'),
 ]
