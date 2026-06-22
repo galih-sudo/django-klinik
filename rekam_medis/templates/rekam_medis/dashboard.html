@@ -50,18 +50,49 @@
             border-radius: 20px;
             font-size: 12px;
         }
-        .topbar .user-info .logout-btn {
+        .logout-btn {
             background: rgba(255,255,255,0.2);
             color: white;
             padding: 6px 16px;
             border-radius: 20px;
-            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
             font-size: 13px;
             transition: all 0.3s;
-            border: 1px solid rgba(255,255,255,0.3);
+            font-family: inherit;
         }
-        .topbar .user-info .logout-btn:hover {
+        .logout-btn:hover {
             background: rgba(255,255,255,0.3);
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .navbar a {
+            padding: 6px 16px;
+            background: #f0f2f5;
+            color: #333;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .navbar a:hover {
+            background: #667eea;
+            color: white;
+        }
+        .navbar a.active {
+            background: #667eea;
+            color: white;
         }
 
         /* WRAPPER */
@@ -196,34 +227,6 @@
         .btn-sehat { background: #4299e1; color: white; }
         .btn-detail { background: #9f7aea; color: white; }
 
-        /* SIDE PANEL */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .quick-actions a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 16px;
-            background: #f7fafc;
-            border-radius: 12px;
-            text-decoration: none;
-            color: #2d3748;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-        .quick-actions a:hover {
-            background: #edf2f7;
-            border-color: #667eea;
-        }
-        .quick-actions a .icon {
-            font-size: 20px;
-        }
-
         .alert-info {
             background: #ebf8ff;
             border-left: 4px solid #4299e1;
@@ -254,6 +257,9 @@
                 flex-wrap: wrap;
                 justify-content: center;
             }
+            .navbar {
+                justify-content: center;
+            }
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
@@ -263,9 +269,6 @@
             }
             .wrapper {
                 padding: 12px;
-            }
-            .quick-actions {
-                grid-template-columns: 1fr;
             }
         }
         @media (max-width: 480px) {
@@ -286,12 +289,32 @@
         <span class="role-badge">
             {% if user.profile.role == 'dokter' %}👨‍⚕️ Dokter{% else %}📋 Staf{% endif %}
         </span>
-        <a href="{% url 'logout' %}" class="logout-btn">🚪 Logout</a>
+        <form action="{% url 'logout' %}" method="post" style="display: inline; margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">🚪 Logout</button>
+        </form>
     </div>
 </div>
 
 <!-- ===== WRAPPER ===== -->
 <div class="wrapper">
+
+    <!-- ===== NAVBAR ===== -->
+    <div class="navbar">
+        <a href="/" class="active">🏠 Dashboard</a>
+        <a href="{% url 'daftar_pasien' %}">📋 Pasien</a>
+        <a href="{% url 'tambah_pasien' %}">➕ Tambah</a>
+        <a href="{% url 'cari_pasien' %}">🔍 Cari</a>
+        {% if user.profile.role == 'dokter' %}
+        <a href="{% url 'kelola_obat' %}">💊 Obat</a>
+        <a href="{% url 'kelola_icd10' %}">📚 ICD-10</a>
+        <a href="{% url 'kelola_user' %}">👥 User</a>
+        <a href="{% url 'export_pasien' %}">📤 Export Pasien</a>
+        <a href="{% url 'export_obat' %}">📤 Export Obat</a>
+        <a href="{% url 'export_icd10' %}">📤 Export ICD</a>
+        <a href="{% url 'import_pasien' %}">📥 Import Pasien</a>
+        {% endif %}
+    </div>
 
     <!-- STATS -->
     <div class="stats-grid">
@@ -368,33 +391,6 @@
 
         <!-- SIDE PANEL -->
         <div>
-            <!-- Quick Actions -->
-            <div class="card">
-                <div class="card-header">
-                    <h3>⚡ Akses Cepat</h3>
-                </div>
-                <div class="quick-actions">
-                    <a href="{% url 'tambah_pasien' %}">
-                        <span class="icon">➕</span> Pasien Baru
-                    </a>
-                    <a href="{% url 'cari_pasien' %}">
-                        <span class="icon">🔍</span> Cari Pasien
-                    </a>
-                    {% if user.profile.role == 'dokter' %}
-                    <a href="{% url 'kelola_obat' %}">
-                        <span class="icon">💊</span> Stok Obat
-                    </a>
-                    <a href="{% url 'kelola_icd10' %}">
-                        <span class="icon">📚</span> ICD-10
-                    </a>
-                    <a href="{% url 'kelola_user' %}">
-                        <span class="icon">👥</span> Kelola User
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Info -->
             <div class="card">
                 <div class="card-header">
                     <h3>ℹ️ Informasi</h3>

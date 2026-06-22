@@ -10,6 +10,11 @@ from django.db import models
 from django.http import HttpResponse
 from django.template.loader import get_template
 from weasyprint import HTML
+import openpyxl
+from openpyxl import Workbook
+from django.http import HttpResponse
+import pandas as pd
+from io import BytesIO
 
 @login_required
 def dashboard(request):
@@ -289,6 +294,118 @@ def hapus_icd10(request, kode):
     icd = get_object_or_404(ICD10, kode=kode)
     icd.delete()
     return redirect('kelola_icd10')
+
+# ========== EXPORT EXCEL ==========
+@login_required
+@dokter_required
+def export_pasien_excel(request):
+    pasien_list = Pasien.objects.all().order_by('-id')
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Data Pasien"
+
+    # Header
+    headers = ['No RM', 'Nama', 'Jenis Kelamin', 'Tgl Lahir', 'Alamat', 'No Telp', 'Pekerjaan', 'Alergi', 'Status']
+    ws.append(headers)
+
+    # Data
+    for p in pasien_list:
+        ws.append([
+            p.no_rm,
+            p.nama,
+            p.get_jenis_kelamin_display(),
+            p.tgl_lahir.strftime('%Y-%m-%d') if p.tgl_lahir else '',
+            p.alamat,
+            p.no_telp,
+            p.pekerjaan,
+            p.alergi,
+            'Aktif' if p.aktif else 'Tidak Aktif'
+        ])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=data_pasien.xlsx'
+    wb.save(response)
+    return response
+
+@login_required
+@dokter_required
+def export_obat_excel(request):
+    obat_list = Obat.objects.all().order_by('nama')
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Data Obat"
+
+    headers = ['Nama Obat', 'Stok', 'Satuan']
+    ws.append(headers)
+
+    for o in obat_list:
+        ws.append([o.nama, o.stok, o.satuan])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=data_obat.xlsx'
+    wb.save(response)
+    return response
+
+@login_required
+@dokter_required
+def export_icd10_excel(request):
+    icd_list = ICD10.objects.all().order_by('kode')
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Data ICD-10"
+
+    headers = ['Kode', 'Nama Penyakit', 'Kategori']
+    ws.append(headers)
+
+    for i in icd_list:
+        ws.append([i.kode, i.nama_penyakit, i.kategori])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=data_icd10.xlsx'
+    wb.save(response)
+    return response
+
+# ========== IMPORT EXCEL ==========
+@login_required
+@dokter_required
+def import_pasien_excel(request):
+    if request.method == 'POST' and request.FILES.get('file_excel'):
+        file = request.FILES['file_excel']
+
+        try:
+            df = pd.read_excel(file)
+
+            for index, row in df.iterrows():
+                # Cek apakah No RM sudah ada
+                no_rm = str(row['No RM']) if pd.notna(row['No RM']) else None
+
+                if no_rm and Pasien.objects.filter(no_rm=no_rm).exists():
+                    continue  # Skip jika sudah ada
+
+                pasien = Pasien(
+                    no_rm=no_rm or f"{timezone.now().strftime('%y')}-{Pasien.objects.count() + 1:04d}",
+                    nama=row['Nama'] if pd.notna(row['Nama']) else '',
+                    jenis_kelamin=row['Jenis Kelamin'][0] if pd.notna(row['Jenis Kelamin']) and row['Jenis Kelamin'] else '',
+                    tgl_lahir=row['Tgl Lahir'] if pd.notna(row['Tgl Lahir']) else None,
+                    alamat=row['Alamat'] if pd.notna(row['Alamat']) else '',
+                    no_telp=row['No Telp'] if pd.notna(row['No Telp']) else '',
+                    pekerjaan=row['Pekerjaan'] if pd.notna(row['Pekerjaan']) else '',
+                    alergi=row['Alergi'] if pd.notna(row['Alergi']) else '',
+                    aktif=row['Status'] == 'Aktif' if pd.notna(row['Status']) else True
+                )
+                pasien.save()
+
+            messages.success(request, f'Import data pasien berhasil!')
+
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+
+        return redirect('daftar_pasien')
+
+    return render(request, 'rekam_medis/import_pasien.html')
 
 # ========== CETAK SURAT ==========
 @login_required

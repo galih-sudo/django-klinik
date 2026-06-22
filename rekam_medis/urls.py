@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth.views import LogoutView
 from . import views
+from . import api_views
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
@@ -35,4 +36,21 @@ urlpatterns = [
 
     # LOGOUT
     path('logout/', LogoutView.as_view(next_page='/accounts/login/'), name='logout'),
+
+    # EXPORT IMPORT
+    path('export/pasien/', views.export_pasien_excel, name='export_pasien'),
+    path('export/obat/', views.export_obat_excel, name='export_obat'),
+    path('export/icd10/', views.export_icd10_excel, name='export_icd10'),
+    path('import/pasien/', views.import_pasien_excel, name='import_pasien'),
+
+     # ========== API MOBILE ==========
+    path('api/pasien/', api_views.api_pasien_list, name='api_pasien'),
+    path('api/pasien/<int:pk>/', api_views.api_pasien_detail, name='api_pasien_detail'),
+    path('api/pasien/create/', api_views.api_pasien_create, name='api_pasien_create'),
+    path('api/rekam/', api_views.api_rekam_list, name='api_rekam'),
+    path('api/rekam/pasien/<int:pasien_id>/', api_views.api_rekam_pasien, name='api_rekam_pasien'),
+    path('api/rekam/create/', api_views.api_rekam_create, name='api_rekam_create'),
+    path('api/obat/', api_views.api_obat_list, name='api_obat'),
+    path('api/icd10/', api_views.api_icd10_list, name='api_icd10'),
+    path('api/icd10/search/<str:keyword>/', api_views.api_icd10_search, name='api_icd10_search'),
 ]

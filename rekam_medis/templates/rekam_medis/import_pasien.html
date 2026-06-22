@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Import Pasien - dr Galih</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #667eea; margin-bottom: 10px; }
+        .info { background: #ebf8ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #2b6cb0; font-size: 14px; }
+        .info ul { margin-left: 20px; margin-top: 5px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; }
+        input[type="file"] { width: 100%; padding: 10px; border: 2px dashed #ddd; border-radius: 8px; }
+        .btn { padding: 10px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h2>📥 Import Pasien</h2>
+        <p style="color: #666; margin-bottom: 15px;">Upload file Excel untuk import data pasien</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <div class="info">
+            <strong>📌 Format Excel yang didukung:</strong>
+            <ul>
+                <li>No RM</li>
+                <li>Nama</li>
+                <li>Jenis Kelamin (L/P)</li>
+                <li>Tgl Lahir (YYYY-MM-DD)</li>
+                <li>Alamat</li>
+                <li>No Telp</li>
+                <li>Pekerjaan</li>
+                <li>Alergi</li>
+                <li>Status (Aktif/Tidak Aktif)</li>
+            </ul>
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Pilih File Excel</label>
+                <input type="file" name="file_excel" accept=".xlsx,.xls" required>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary">📤 Upload & Import</button>
+                <a href="{% url 'daftar_pasien' %}" class="btn btn-secondary">🔙 Kembali</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
