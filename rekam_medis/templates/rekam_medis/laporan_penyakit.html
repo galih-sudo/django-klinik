@@ -1,0 +1,23 @@
+{% extends "rekam_medis/base.html" %}
+{% block title %}10 Penyakit Terbanyak - dr Galih{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h3>🏆 10 Penyakit Terbanyak</h3></div>
+    <table>
+        <thead><tr><th>#</th><th>Kode</th><th>Nama Penyakit</th><th>Jumlah Kasus</th></tr></thead>
+        <tbody>
+        {% for p in penyakit %}
+        <tr>
+            <td><strong>{{ forloop.counter }}</strong></td>
+            <td>{{ p.kode }}</td>
+            <td>{{ p.nama_penyakit }}</td>
+            <td><strong>{{ p.total }}</strong></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;">Belum ada data</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary" style="margin-top: 15px;">🔙 Kembali</a>
+</div>
+{% endblock %}

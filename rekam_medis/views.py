@@ -3,19 +3,24 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.models import User
-from .models import Pasien, Obat, Kunjungan, RekamMedis, ICD10, Profile
-from .forms import PasienForm, RekamMedisForm
-from .decorators import dokter_required, staf_required
 from django.db import models
 from django.http import HttpResponse
 from django.template.loader import get_template
+from .models import Pasien, Obat, Kunjungan, RekamMedis, ICD10, Profile
+from .forms import PasienForm, RekamMedisForm
+from .decorators import dokter_required, staf_required
+from django.core.paginator import Paginator
+
+# PDF
 from weasyprint import HTML
+
+# Excel
 import openpyxl
 from openpyxl import Workbook
-from django.http import HttpResponse
 import pandas as pd
 from io import BytesIO
 
+# ========== DASHBOARD ==========
 @login_required
 def dashboard(request):
     today = timezone.now().date()
@@ -38,7 +43,14 @@ def dashboard(request):
 @staf_required
 def daftar_pasien(request):
     pasien_list = Pasien.objects.filter(aktif=True).order_by('-id')
-    context = {'pasien_list': pasien_list}
+
+    paginator = Paginator(pasien_list, 10)  # 10 pasien per halaman
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+    }
     return render(request, 'rekam_medis/daftar_pasien.html', context)
 
 @login_required
@@ -52,6 +64,7 @@ def tambah_pasien(request):
             count = Pasien.objects.count() + 1
             pasien.no_rm = f"{tahun}-{count:04d}"
             pasien.save()
+            messages.success(request, f'✅ Pasien {pasien.nama} berhasil ditambahkan! No RM: {pasien.no_rm}')
             return redirect('dashboard')
     else:
         form = PasienForm()
@@ -68,7 +81,6 @@ def cari_pasien(request):
 
     pasien_list = Pasien.objects.all()
 
-    # Filter berdasarkan keyword
     if keyword:
         pasien_list = pasien_list.filter(
             models.Q(nama__icontains=keyword) |
@@ -76,17 +88,14 @@ def cari_pasien(request):
             models.Q(alamat__icontains=keyword)
         )
 
-    # Filter jenis kelamin
     if jenis_kelamin:
         pasien_list = pasien_list.filter(jenis_kelamin=jenis_kelamin)
 
-    # Filter tanggal lahir
     if tgl_awal:
         pasien_list = pasien_list.filter(tgl_lahir__gte=tgl_awal)
     if tgl_akhir:
         pasien_list = pasien_list.filter(tgl_lahir__lte=tgl_akhir)
 
-    # Filter status aktif
     if status_aktif == 'aktif':
         pasien_list = pasien_list.filter(aktif=True)
     elif status_aktif == 'tidak_aktif':
@@ -113,6 +122,7 @@ def edit_pasien(request, pasien_id):
         form = PasienForm(request.POST, instance=pasien)
         if form.is_valid():
             form.save()
+            messages.success(request, f'✅ Data pasien {pasien.nama} berhasil diupdate!')
             return redirect('daftar_pasien')
     else:
         form = PasienForm(instance=pasien)
@@ -136,6 +146,7 @@ def rekam_medis(request, pasien_id):
                 rekam_medis=rekam,
                 tanggal=timezone.now().date()
             )
+            messages.success(request, f'✅ Rekam medis untuk {pasien.nama} berhasil disimpan!')
             return redirect('daftar_pasien')
     else:
         form = RekamMedisForm()
@@ -164,14 +175,17 @@ def buat_resep(request, rekam_medis_id):
             obat.stok -= jumlah
             obat.save()
 
+            from .models import Resep
             Resep.objects.create(
                 rekam_medis=rekam,
                 obat=obat,
                 jumlah=jumlah,
                 aturan=aturan
             )
+            messages.success(request, '✅ Resep berhasil dibuat!')
             return redirect('daftar_pasien')
         else:
+            messages.error(request, f'❌ Stok {obat.nama} tidak cukup!')
             return render(request, 'rekam_medis/error_stok.html', {'obat': obat})
 
     context = {
@@ -196,6 +210,7 @@ def tambah_obat(request):
         satuan = request.POST.get('satuan', 'tablet')
 
         Obat.objects.create(nama=nama, stok=stok, satuan=satuan)
+        messages.success(request, f'✅ Obat {nama} berhasil ditambahkan!')
         return redirect('kelola_obat')
 
     return render(request, 'rekam_medis/tambah_obat.html')
@@ -210,6 +225,7 @@ def edit_obat(request, obat_id):
         obat.stok = int(request.POST.get('stok', obat.stok))
         obat.satuan = request.POST.get('satuan', obat.satuan)
         obat.save()
+        messages.success(request, f'✅ Obat {obat.nama} berhasil diupdate!')
         return redirect('kelola_obat')
 
     return render(request, 'rekam_medis/edit_obat.html', {'obat': obat})
@@ -218,7 +234,9 @@ def edit_obat(request, obat_id):
 @dokter_required
 def hapus_obat(request, obat_id):
     obat = get_object_or_404(Obat, id=obat_id)
+    nama = obat.nama
     obat.delete()
+    messages.success(request, f'✅ Obat {nama} berhasil dihapus!')
     return redirect('kelola_obat')
 
 # ========== ICD-10 ==========
@@ -238,12 +256,14 @@ def kelola_icd10(request):
                 nama_penyakit=nama,
                 kategori=kategori
             )
+            messages.success(request, f'✅ ICD-10 {kode} berhasil ditambahkan!')
             return redirect('kelola_icd10')
 
         hapus_id = request.POST.get('hapus_id')
         if hapus_id:
             icd = get_object_or_404(ICD10, kode=hapus_id)
             icd.delete()
+            messages.success(request, f'✅ ICD-10 {hapus_id} berhasil dihapus!')
             return redirect('kelola_icd10')
 
     context = {
@@ -261,13 +281,14 @@ def tambah_icd10(request):
 
         if kode and nama_penyakit:
             if ICD10.objects.filter(kode=kode).exists():
-                pass
+                messages.error(request, f'❌ Kode ICD-10 {kode} sudah ada!')
             else:
                 ICD10.objects.create(
                     kode=kode,
                     nama_penyakit=nama_penyakit,
                     kategori=kategori
                 )
+                messages.success(request, f'✅ ICD-10 {kode} berhasil ditambahkan!')
             return redirect('kelola_icd10')
 
     return render(request, 'rekam_medis/tambah_icd10.html')
@@ -281,6 +302,7 @@ def edit_icd10(request, kode):
         icd.nama_penyakit = request.POST.get('nama_penyakit', icd.nama_penyakit)
         icd.kategori = request.POST.get('kategori', icd.kategori)
         icd.save()
+        messages.success(request, f'✅ ICD-10 {kode} berhasil diupdate!')
         return redirect('kelola_icd10')
 
     context = {
@@ -293,7 +315,114 @@ def edit_icd10(request, kode):
 def hapus_icd10(request, kode):
     icd = get_object_or_404(ICD10, kode=kode)
     icd.delete()
+    messages.success(request, f'✅ ICD-10 {kode} berhasil dihapus!')
     return redirect('kelola_icd10')
+
+# ========== MANAJEMEN USER ==========
+@login_required
+@dokter_required
+def kelola_user(request):
+    users = User.objects.all().select_related('profile')
+    return render(request, 'rekam_medis/kelola_user.html', {'users': users})
+
+@login_required
+@dokter_required
+def tambah_user(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        email = request.POST.get('email', '')
+        role = request.POST.get('role')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, '❌ Username sudah ada!')
+            return redirect('tambah_user')
+
+        user = User.objects.create_user(username=username, password=password, email=email)
+        Profile.objects.create(user=user, role=role)
+
+        messages.success(request, f'✅ User {username} berhasil dibuat!')
+        return redirect('kelola_user')
+
+    return render(request, 'rekam_medis/tambah_user.html')
+
+@login_required
+@dokter_required
+def edit_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    profile = user.profile
+
+    if request.method == 'POST':
+        user.email = request.POST.get('email', user.email)
+        profile.role = request.POST.get('role', profile.role)
+        profile.no_izin = request.POST.get('no_izin', profile.no_izin)
+        profile.telepon = request.POST.get('telepon', profile.telepon)
+        profile.alamat = request.POST.get('alamat', profile.alamat)
+
+        user.save()
+        profile.save()
+
+        messages.success(request, f'✅ User {user.username} berhasil diupdate!')
+        return redirect('kelola_user')
+
+    return render(request, 'rekam_medis/edit_user.html', {'user': user, 'profile': profile})
+
+@login_required
+@dokter_required
+def hapus_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if user == request.user:
+        messages.error(request, '❌ Tidak bisa menghapus akun sendiri!')
+        return redirect('kelola_user')
+
+    user.delete()
+    messages.success(request, '✅ User berhasil dihapus!')
+    return redirect('kelola_user')
+
+# ========== CETAK SURAT ==========
+@login_required
+@dokter_required
+def surat_sehat(request, pasien_id):
+    pasien = get_object_or_404(Pasien, id=pasien_id)
+    today = timezone.now().date()
+
+    context = {
+        'pasien': pasien,
+        'today': today,
+        'dokter': request.user,
+    }
+
+    template = get_template('rekam_medis/surat_sehat.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename=surat_sehat_{pasien.no_rm}.pdf'
+
+    HTML(string=html).write_pdf(response)
+    return response
+
+@login_required
+@dokter_required
+def surat_istirahat(request, pasien_id):
+    pasien = get_object_or_404(Pasien, id=pasien_id)
+    today = timezone.now().date()
+    lama = request.GET.get('lama', '3')
+
+    context = {
+        'pasien': pasien,
+        'today': today,
+        'lama': lama,
+        'dokter': request.user,
+    }
+
+    template = get_template('rekam_medis/surat_istirahat.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename=surat_istirahat_{pasien.no_rm}.pdf'
+
+    HTML(string=html).write_pdf(response)
+    return response
 
 # ========== EXPORT EXCEL ==========
 @login_required
@@ -305,11 +434,9 @@ def export_pasien_excel(request):
     ws = wb.active
     ws.title = "Data Pasien"
 
-    # Header
     headers = ['No RM', 'Nama', 'Jenis Kelamin', 'Tgl Lahir', 'Alamat', 'No Telp', 'Pekerjaan', 'Alergi', 'Status']
     ws.append(headers)
 
-    # Data
     for p in pasien_list:
         ws.append([
             p.no_rm,
@@ -379,11 +506,10 @@ def import_pasien_excel(request):
             df = pd.read_excel(file)
 
             for index, row in df.iterrows():
-                # Cek apakah No RM sudah ada
                 no_rm = str(row['No RM']) if pd.notna(row['No RM']) else None
 
                 if no_rm and Pasien.objects.filter(no_rm=no_rm).exists():
-                    continue  # Skip jika sudah ada
+                    continue
 
                 pasien = Pasien(
                     no_rm=no_rm or f"{timezone.now().strftime('%y')}-{Pasien.objects.count() + 1:04d}",
@@ -398,117 +524,61 @@ def import_pasien_excel(request):
                 )
                 pasien.save()
 
-            messages.success(request, f'Import data pasien berhasil!')
+            messages.success(request, '✅ Import data pasien berhasil!')
 
         except Exception as e:
-            messages.error(request, f'Error: {str(e)}')
+            messages.error(request, f'❌ Error: {str(e)}')
 
         return redirect('daftar_pasien')
 
     return render(request, 'rekam_medis/import_pasien.html')
 
-# ========== CETAK SURAT ==========
+# ========== LAPORAN ==========
 @login_required
 @dokter_required
-def surat_sehat(request, pasien_id):
-    pasien = get_object_or_404(Pasien, id=pasien_id)
-    today = timezone.now().date()
+def laporan_penyakit_terbanyak(request):
+    from django.db.models import Count
+
+    penyakit = ICD10.objects.annotate(
+        total=Count('rekammedis')
+    ).filter(total__gt=0).order_by('-total')[:10]
 
     context = {
-        'pasien': pasien,
-        'today': today,
-        'dokter': request.user,
+        'penyakit': penyakit,
     }
-
-    template = get_template('rekam_medis/surat_sehat.html')
-    html = template.render(context)
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename=surat_sehat_{pasien.no_rm}.pdf'
-
-    HTML(string=html).write_pdf(response)
-    return response
+    return render(request, 'rekam_medis/laporan_penyakit.html', context)
 
 @login_required
 @dokter_required
-def surat_istirahat(request, pasien_id):
-    pasien = get_object_or_404(Pasien, id=pasien_id)
-    today = timezone.now().date()
-    lama = request.GET.get('lama', '3')
+def laporan_obat_terbanyak(request):
+    from django.db.models import Sum
+
+    obat = Obat.objects.annotate(
+        total_dipakai=Sum('resep__jumlah')
+    ).filter(total_dipakai__gt=0).order_by('-total_dipakai')[:10]
 
     context = {
-        'pasien': pasien,
-        'today': today,
-        'lama': lama,
-        'dokter': request.user,
+        'obat': obat,
     }
-
-    template = get_template('rekam_medis/surat_istirahat.html')
-    html = template.render(context)
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename=surat_istirahat_{pasien.no_rm}.pdf'
-
-    HTML(string=html).write_pdf(response)
-    return response
-
-# ========== MANAJEMEN USER ==========
-@login_required
-@dokter_required
-def kelola_user(request):
-    users = User.objects.all().select_related('profile')
-    return render(request, 'rekam_medis/kelola_user.html', {'users': users})
+    return render(request, 'rekam_medis/laporan_obat.html', context)
 
 @login_required
 @dokter_required
-def tambah_user(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        email = request.POST.get('email', '')
-        role = request.POST.get('role')
+def laporan_kunjungan(request):
+    tgl_awal = request.GET.get('tgl_awal', '')
+    tgl_akhir = request.GET.get('tgl_akhir', '')
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username sudah ada!')
-            return redirect('tambah_user')
+    kunjungan = Kunjungan.objects.all().order_by('-tanggal')
 
-        user = User.objects.create_user(username=username, password=password, email=email)
-        Profile.objects.create(user=user, role=role)
+    if tgl_awal:
+        kunjungan = kunjungan.filter(tanggal__gte=tgl_awal)
+    if tgl_akhir:
+        kunjungan = kunjungan.filter(tanggal__lte=tgl_akhir)
 
-        messages.success(request, f'User {username} berhasil dibuat!')
-        return redirect('kelola_user')
-
-    return render(request, 'rekam_medis/tambah_user.html')
-
-@login_required
-@dokter_required
-def edit_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    profile = user.profile
-
-    if request.method == 'POST':
-        user.email = request.POST.get('email', user.email)
-        profile.role = request.POST.get('role', profile.role)
-        profile.no_izin = request.POST.get('no_izin', profile.no_izin)
-        profile.telepon = request.POST.get('telepon', profile.telepon)
-        profile.alamat = request.POST.get('alamat', profile.alamat)
-
-        user.save()
-        profile.save()
-
-        messages.success(request, f'User {user.username} berhasil diupdate!')
-        return redirect('kelola_user')
-
-    return render(request, 'rekam_medis/edit_user.html', {'user': user, 'profile': profile})
-
-@login_required
-@dokter_required
-def hapus_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    if user == request.user:
-        messages.error(request, 'Tidak bisa menghapus akun sendiri!')
-        return redirect('kelola_user')
-
-    user.delete()
-    messages.success(request, 'User berhasil dihapus!')
-    return redirect('kelola_user')
+    context = {
+        'kunjungan': kunjungan,
+        'tgl_awal': tgl_awal,
+        'tgl_akhir': tgl_akhir,
+        'total': kunjungan.count(),
+    }
+    return render(request, 'rekam_medis/laporan_kunjungan.html', context)

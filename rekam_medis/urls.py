@@ -53,4 +53,9 @@ urlpatterns = [
     path('api/obat/', api_views.api_obat_list, name='api_obat'),
     path('api/icd10/', api_views.api_icd10_list, name='api_icd10'),
     path('api/icd10/search/<str:keyword>/', api_views.api_icd10_search, name='api_icd10_search'),
+
+    # ========== LAPORAN ==========
+    path('laporan/penyakit/', views.laporan_penyakit_terbanyak, name='laporan_penyakit'),
+    path('laporan/obat/', views.laporan_obat_terbanyak, name='laporan_obat'),
+    path('laporan/kunjungan/', views.laporan_kunjungan, name='laporan_kunjungan'),
 ]

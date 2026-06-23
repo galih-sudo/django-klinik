@@ -1,0 +1,36 @@
+{% extends "rekam_medis/base.html" %}
+{% block title %}Laporan Kunjungan - dr Galih{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h3>📋 Laporan Kunjungan</h3></div>
+    <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div class="form-group" style="margin-bottom:0;">
+            <label>Tanggal Awal</label>
+            <input type="date" name="tgl_awal" class="form-control" value="{{ tgl_awal }}">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+            <label>Tanggal Akhir</label>
+            <input type="date" name="tgl_akhir" class="form-control" value="{{ tgl_akhir }}">
+        </div>
+        <button type="submit" class="btn btn-primary" style="align-self:flex-end;">🔍 Tampilkan</button>
+        <a href="{% url 'laporan_kunjungan' %}" class="btn btn-secondary" style="align-self:flex-end;">↺ Reset</a>
+    </form>
+    <table>
+        <thead><tr><th>Tanggal</th><th>No RM</th><th>Nama</th><th>Diagnosis</th></tr></thead>
+        <tbody>
+        {% for k in kunjungan %}
+        <tr>
+            <td>{{ k.tanggal|date:"d-m-Y" }}</td>
+            <td>{{ k.rekam_medis.pasien.no_rm }}</td>
+            <td>{{ k.rekam_medis.pasien.nama }}</td>
+            <td>{{ k.rekam_medis.icd10.nama_penyakit|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;">Tidak ada kunjungan</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div style="margin-top: 15px; font-weight: bold;">Total Kunjungan: {{ total }}</div>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary" style="margin-top: 15px;">🔙 Kembali</a>
+</div>
+{% endblock %}

@@ -1,220 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Cari Pasien - dr Galih</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 16px;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .card h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-        .filter-form {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-        .filter-form input, .filter-form select {
-            padding: 10px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            width: 100%;
-        }
-        .filter-form input:focus, .filter-form select:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        .btn-sm {
-            padding: 5px 12px;
-            font-size: 12px;
-            border-radius: 16px;
-        }
-        .btn-soap { background: #28a745; color: white; }
-        .btn-edit { background: #ff9800; color: white; }
-        .btn-istirahat { background: #ff9800; color: white; }
-        .btn-sehat { background: #4caf50; color: white; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        th, td {
-            padding: 10px 8px;
-            text-align: left;
-            border-bottom: 1px solid #f0f2f5;
-        }
-        th {
-            background: #f8fafc;
-            color: #667eea;
-            font-weight: 600;
-        }
-        .badge {
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-        }
-        .badge-aktif { background: #d4edda; color: #155724; }
-        .badge-tidak { background: #f8d7da; color: #721c24; }
-        .total-info {
-            margin-bottom: 15px;
-            color: #666;
-            font-size: 14px;
-        }
-        .nav-menu {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-        .nav-menu a {
-            padding: 8px 16px;
-            background: white;
-            color: #667eea;
-            text-decoration: none;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        .nav-menu a:hover {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        .nav-menu .logout-btn {
-            background: #fee2e2;
-            color: #ef4444;
-        }
-        @media (max-width: 768px) {
-            .filter-form { grid-template-columns: 1fr; }
-            th, td { font-size: 11px; padding: 6px 4px; }
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="nav-menu">
-        <a href="/">🏠 Dashboard</a>
-        <a href="/pasien/">📋 Daftar Pasien</a>
-        <a href="/pasien/tambah/">➕ Pasien</a>
-        <a href="/pasien/cari/" style="background: #667eea; color: white;">🔍 Cari</a>
-        <a href="/obat/">💊 Stok Obat</a>
-        <a href="/icd10/">📚 ICD-10</a>
-        <a href="/admin">🔐 Admin</a>
-        <a href="{% url 'logout' %}" class="logout-btn">🚪 Logout</a>
-    </div>
-
-    <div class="card">
-        <h2>🔍 Cari Pasien</h2>
-
-        <form method="GET" class="filter-form">
-            <input type="text" name="q" placeholder="🔍 Cari nama / No RM / alamat..." value="{{ keyword }}">
-
-            <select name="jenis_kelamin">
-                <option value="">Semua Jenis Kelamin</option>
-                <option value="L" {% if jenis_kelamin == 'L' %}selected{% endif %}>Laki-laki</option>
-                <option value="P" {% if jenis_kelamin == 'P' %}selected{% endif %}>Perempuan</option>
-            </select>
-
-            <input type="date" name="tgl_awal" value="{{ tgl_awal }}" placeholder="Tanggal lahir dari">
-            <input type="date" name="tgl_akhir" value="{{ tgl_akhir }}" placeholder="Tanggal lahir sampai">
-
-            <select name="status_aktif">
-                <option value="">Semua Status</option>
-                <option value="aktif" {% if status_aktif == 'aktif' %}selected{% endif %}>Aktif</option>
-                <option value="tidak_aktif" {% if status_aktif == 'tidak_aktif' %}selected{% endif %}>Tidak Aktif</option>
-            </select>
-
-            <button type="submit" class="btn btn-primary">🔍 Cari</button>
-            <a href="{% url 'cari_pasien' %}" class="btn btn-secondary">↺ Reset</a>
-        </form>
-    </div>
-
-    <div class="card">
-        <div class="total-info">
-            <strong>Total:</strong> {{ total }} pasien ditemukan
-            {% if keyword %}untuk "<strong>{{ keyword }}</strong>"{% endif %}
-        </div>
-
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>No RM</th>
-                        <th>Nama</th>
-                        <th>Jenis Kelamin</th>
-                        <th>Tgl Lahir</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in pasien_list %}
-                    <tr>
-                        <td><strong>{{ p.no_rm }}</strong></td>
-                        <td>{{ p.nama }}</td>
-                        <td>{{ p.get_jenis_kelamin_display|default:"-" }}</td>
-                        <td>{{ p.tgl_lahir|date:"d/m/Y"|default:"-" }}</td>
-                        <td>
-                            {% if p.aktif %}
-                                <span class="badge badge-aktif">✅ Aktif</span>
-                            {% else %}
-                                <span class="badge badge-tidak">❌ Tidak</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="/pasien/rekam/{{ p.id }}/" class="btn btn-sm btn-soap">📝 Rekam</a>
-                            <a href="/pasien/edit/{{ p.id }}/" class="btn btn-sm btn-edit">✏️ Edit</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: #999; padding: 30px;">
-                            {% if keyword %}
-                                Tidak ada pasien dengan kata kunci "{{ keyword }}"
-                            {% else %}
-                                Silakan masukkan kata kunci untuk mencari pasien
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+{% extends "rekam_medis/base.html" %}
+{% block title %}Cari Pasien - dr Galih{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h3>🔍 Cari Pasien</h3></div>
+    <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="text" name="q" placeholder="Nama / No RM / Alamat" value="{{ keyword }}" class="form-control" style="flex:1;">
+        <button type="submit" class="btn btn-primary">🔍 Cari</button>
+        <a href="{% url 'cari_pasien' %}" class="btn btn-secondary">↺ Reset</a>
+    </form>
 </div>
-</body>
-</html>
+{% if keyword %}
+<div class="card">
+    <div class="card-header"><h3>📋 Hasil Pencarian: "{{ keyword }}"</h3></div>
+    <table>
+        <thead><tr><th>No RM</th><th>Nama</th><th>Jenis Kelamin</th><th>Aksi</th></tr></thead>
+        <tbody>
+        {% for p in pasien_list %}
+        <tr>
+            <td><strong>{{ p.no_rm }}</strong></td>
+            <td>{{ p.nama }}</td>
+            <td>{{ p.get_jenis_kelamin_display|default:"-" }}</td>
+            <td><a href="{% url 'rekam_medis' p.id %}" class="btn btn-success btn-sm">📝 Rekam</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center; padding:20px;">Tidak ditemukan</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

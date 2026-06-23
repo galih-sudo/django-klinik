@@ -1,41 +1,47 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Tambah Pasien - dr Galih</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        h2 { color: #667eea; margin-bottom: 20px; }
-        label { display: block; font-weight: bold; margin-top: 15px; margin-bottom: 5px; }
-        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; }
-        button { 
-            background: #667eea; 
-            color: white; 
-            padding: 10px 20px; 
-            border: none; 
-            border-radius: 8px; 
-            margin-top: 20px; 
-            cursor: pointer; 
-            width: 100%;
-        }
-        button:hover { background: #764ba2; }
-        .btn-back { display: inline-block; margin-top: 15px; color: #667eea; text-decoration: none; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="card">
-            <h2>➕ Tambah Pasien Baru</h2>
-            <form method="POST">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit">💾 Simpan Pasien</button>
-            </form>
-            <a href="/" class="btn-back">← Kembali ke Dashboard</a>
+{% extends "rekam_medis/base.html" %}
+{% block title %}Tambah Pasien - dr Galih{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 700px; margin: 0 auto;">
+    <div class="card-header"><h3>➕ Tambah Pasien</h3></div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Nama:</label>
+            <input type="text" name="nama" class="form-control" required>
         </div>
-    </div>
-</body>
-</html>
+        <div class="form-group">
+            <label>Tanggal Lahir:</label>
+            <input type="date" name="tgl_lahir" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Alamat:</label>
+            <textarea name="alamat" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+            <label>No Telp:</label>
+            <input type="text" name="no_telp" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Jenis Kelamin:</label>
+            <select name="jenis_kelamin" class="form-control">
+                <option value="L">Laki-laki</option>
+                <option value="P">Perempuan</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Pekerjaan:</label>
+            <input type="text" name="pekerjaan" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Alergi:</label>
+            <textarea name="alergi" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Riwayat Penyakit:</label>
+            <textarea name="riwayat_penyakit" class="form-control" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">💾 Simpan</button>
+        <a href="{% url 'daftar_pasien' %}" class="btn btn-secondary">🔙 Batal</a>
+    </form>
+</div>
+{% endblock %}

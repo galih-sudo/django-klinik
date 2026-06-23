@@ -1,60 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Stok Obat - dr Galih</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        h2 { color: #667eea; margin-bottom: 5px; text-align: center; }
-        .subtitle { text-align: center; color: #764ba2; margin-bottom: 20px; font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #f8f9fa; color: #667eea; }
-        .btn { display: inline-block; padding: 5px 12px; border-radius: 5px; text-decoration: none; font-size: 12px; margin: 2px; }
-        .btn-add { background: #28a745; color: white; }
-        .btn-edit { background: #ff9800; color: white; }
-        .btn-delete { background: #e74c3c; color: white; }
-        .btn-back { background: #6c757d; color: white; display: inline-block; padding: 8px 20px; border-radius: 8px; text-decoration: none; margin-top: 15px; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="card">
-        <h2>💊 Stok Obat</h2>
-        <div class="subtitle">Kelola data obat dan stok</div>
-
-        <div style="margin-bottom: 20px;">
-            <a href="/obat/tambah/" class="btn btn-add">➕ Tambah Obat</a>
-        </div>
-
-        <table>
-            <thead>
-                <tr><th>Nama</th><th>Stok</th><th>Satuan</th><th>Aksi</th></tr>
-            </thead>
-            <tbody>
-                {% for obat in obat_list %}
-                <tr>
-                    <td>{{ obat.nama }}</td>
-                    <td>{{ obat.stok }}</td>
-                    <td>{{ obat.satuan }}</td>
-                    <td>
-                        <a href="/obat/edit/{{ obat.id }}/" class="btn btn-edit">✏️ Edit</a>
-                        <a href="/obat/hapus/{{ obat.id }}/" class="btn btn-delete" onclick="return confirm('Hapus {{ obat.nama }}?')">🗑️ Hapus</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="4" style="text-align: center; color: #999;">Belum ada obat</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <div style="text-align: center;">
-            <a href="/" class="btn-back">← Kembali ke Dashboard</a>
-        </div>
+{% extends "rekam_medis/base.html" %}
+{% block title %}Kelola Obat - dr Galih{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3>💊 Daftar Obat</h3>
+        <a href="{% url 'tambah_obat' %}" class="btn btn-success btn-sm">➕ Tambah Obat</a>
     </div>
+    <table>
+        <thead><tr><th>Nama</th><th>Stok</th><th>Satuan</th><th>Aksi</th></tr></thead>
+        <tbody>
+        {% for o in obat_list %}
+        <tr>
+            <td>{{ o.nama }}</td>
+            <td>{{ o.stok }}</td>
+            <td>{{ o.satuan }}</td>
+            <td>
+                <a href="{% url 'edit_obat' o.id %}" class="btn btn-warning btn-sm">✏️</a>
+                <a href="{% url 'hapus_obat' o.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin?')">🗑️</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;">Belum ada obat</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
-</body>
-</html>
+{% endblock %}

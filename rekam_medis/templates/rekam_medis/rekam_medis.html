@@ -1,124 +1,37 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>SOAP - Rekam Medis</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 20px;
-            min-height: 100vh;
-        }
-        .container { max-width: 800px; margin: 0 auto; }
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        h2 {
-            color: #667eea;
-            margin-bottom: 5px;
-            text-align: center;
-        }
-        .subtitle {
-            text-align: center;
-            color: #764ba2;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        .info {
-            background: #e8f4f8;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        .info p {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-top: 12px;
-            margin-bottom: 5px;
-            font-size: 13px;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 13px;
-            font-family: inherit;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 15px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .btn-back {
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            padding: 8px;
-            background: #6c757d;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-        }
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .card { padding: 20px; }
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="card">
-        <h2>📋 SOAP - Rekam Medis</h2>
-        <div class="subtitle">Subjective, Objective, Assessment, Planning</div>
-
-        <div class="info">
-            <p><strong>👤 Pasien:</strong> {{ pasien.nama }}</p>
-            <p><strong>🏷️ No RM:</strong> {{ pasien.no_rm }}</p>
+{% extends "rekam_medis/base.html" %}
+{% block title %}Rekam Medis - dr Galih{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 900px; margin: 0 auto;">
+    <div class="card-header"><h3>📝 Rekam Medis: {{ pasien.nama }} ({{ pasien.no_rm }})</h3></div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Subjective (Keluhan):</label>
+            <textarea name="subjective" class="form-control" rows="3" required></textarea>
         </div>
-
-        <form method="POST">
-            {% csrf_token %}
-
-            <label>📝 Subjective (Keluhan)</label>
-            <textarea name="subjective" rows="3" placeholder="Apa yang dirasakan pasien?" required></textarea>
-
-            <label>🔍 Objective (Pemeriksaan)</label>
-            <textarea name="objective" rows="3" placeholder="TD, Suhu, Fisik, dll"></textarea>
-
-            <label>💊 Assessment (Diagnosis)</label>
-            <input type="text" name="assessment" placeholder="Diagnosis / Penyakit">
-
-            <label>📋 Planning (Tatalaksana)</label>
-            <textarea name="planning" rows="3" placeholder="Terapi, Edukasi, Rujukan"></textarea>
-
-            <label>📎 Link Lampiran (Mega/Drive)</label>
-            <input type="url" name="lampiran_mega" placeholder="https://...">
-
-            <button type="submit">💾 Simpan SOAP</button>
-        </form>
-        <div style="margin-top: 10px;">
-        <a href="/resep/{{ pasien.id }}/" class="btn-back" style="background: #17a2b8; text-align: center; display: block; padding: 8px; border-radius: 8px; color: white; text-decoration: none;">💊 Lanjut ke Resep</a>
+        <div class="form-group">
+            <label>Objective (Hasil Pemeriksaan):</label>
+            <textarea name="objective" class="form-control" rows="3"></textarea>
         </div>
-        <a href="/" class="btn-back" style="flex: 1;">← Dashboard</a>
-        <a href="/pasien/" class="btn-back" style="flex: 1; background: #667eea;">📋 Daftar Pasien</a>
-    </div>
+        <div class="form-group">
+            <label>Assessment (Diagnosis):</label>
+            <input type="text" name="assessment" class="form-control" placeholder="Misal: J10.1">
+        </div>
+        <div class="form-group">
+            <label>Planning (Rencana Tindakan):</label>
+            <textarea name="planning" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+            <label>ICD-10:</label>
+            <select name="icd10" class="form-control">
+                <option value="">-- Pilih ICD-10 --</option>
+                {% for icd in icd_list %}
+                <option value="{{ icd.kode }}">{{ icd.kode }} - {{ icd.nama_penyakit }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">💾 Simpan Rekam Medis</button>
+        <a href="{% url 'daftar_pasien' %}" class="btn btn-secondary">🔙 Kembali</a>
+    </form>
 </div>
-</body>
-</html>
+{% endblock %}

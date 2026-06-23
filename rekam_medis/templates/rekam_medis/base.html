@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}dr Galih - Rekam Medis{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+        /* DARK MODE */
+        body.dark-mode { background: #1a202c; color: #e2e8f0; }
+        body.dark-mode .card { background: #2d3748; color: #e2e8f0; }
+        body.dark-mode .navbar { background: #2d3748; }
+        body.dark-mode .navbar a { background: #4a5568; color: #e2e8f0; }
+        body.dark-mode .navbar a:hover { background: #667eea; color: white; }
+        body.dark-mode .navbar a.active { background: #667eea; color: white; }
+        body.dark-mode .stat-card { background: #2d3748; color: #e2e8f0; }
+        body.dark-mode .stat-card .number { color: #e2e8f0; }
+        body.dark-mode .stat-card .label { color: #a0aec0; }
+        body.dark-mode .dropdown-menu { background: #2d3748; }
+        body.dark-mode .dropdown-menu a { color: #e2e8f0 !important; }
+        body.dark-mode .dropdown-menu a:hover { background: #667eea !important; color: white !important; }
+        body.dark-mode .dropdown-toggle { background: #4a5568; color: #e2e8f0; }
+        body.dark-mode .dropdown-toggle:hover { background: #667eea; color: white; }
+        body.dark-mode table td { color: #e2e8f0; }
+        body.dark-mode table th { background: #4a5568; color: #e2e8f0; }
+        body.dark-mode tr:hover { background: #4a5568; }
+        body.dark-mode .alert-info-box { background: #2d3748; color: #e2e8f0; }
+        body.dark-mode .footer { color: #718096; border-top-color: #2d3748; }
+        body.dark-mode .logout-btn { background: rgba(255,255,255,0.1); }
+        body.dark-mode .logout-btn:hover { background: rgba(255,255,255,0.2); }
+        body.dark-mode .btn-secondary { background: #4a5568; color: white; }
+        body.dark-mode .btn-secondary:hover { background: #667eea; }
+
+        /* LOADING */
+        #loading {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+        #loading.hidden { opacity: 0; pointer-events: none; }
+        .spinner { text-align: center; color: white; }
+        .spinner .icon { font-size: 60px; animation: pulse 1.5s ease-in-out infinite; }
+        .spinner p { margin-top: 15px; font-size: 18px; font-weight: 300; letter-spacing: 2px; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* TOPBAR */
+        .topbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topbar .brand { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+        .topbar .brand span { opacity: 0.8; font-weight: normal; }
+        .topbar .user-info { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .topbar .user-info .avatar { background: rgba(255,255,255,0.2); border-radius: 50%; padding: 8px 12px; font-size: 16px; }
+        .topbar .user-info .role-badge { background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 20px; font-size: 12px; }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .dark-toggle {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .dark-toggle:hover { background: rgba(255,255,255,0.3); }
+
+        /* NAVBAR */
+        .navbar {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        .navbar a {
+            padding: 6px 16px;
+            background: #f0f2f5;
+            color: #333;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .navbar a:hover { background: #667eea; color: white; }
+        .navbar a.active { background: #667eea; color: white; }
+
+        /* DROPDOWN */
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-toggle {
+            padding: 6px 16px;
+            background: #f0f2f5;
+            color: #333;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .dropdown-toggle:hover { background: #667eea; color: white; }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            min-width: 220px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 8px 0;
+            z-index: 999;
+            top: 100%;
+            left: 0;
+        }
+        .dropdown:hover .dropdown-menu { display: block; }
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 20px;
+            background: transparent !important;
+            color: #333 !important;
+            border-radius: 0 !important;
+            font-size: 13px;
+        }
+        .dropdown-menu a:hover { background: #667eea !important; color: white !important; }
+        .dropdown-menu hr { margin: 5px 15px; border: none; border-top: 1px solid #f0f2f5; }
+
+        /* WRAPPER */
+        .wrapper { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+        /* TOAST */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 14px 24px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            min-width: 250px;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        body.dark-mode .toast { background: #2d3748; color: #e2e8f0; }
+        .toast-success { border-left: 4px solid #48bb78; }
+        .toast-error { border-left: 4px solid #fc8181; }
+        .toast-info { border-left: 4px solid #4299e1; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ALERT */
+        .alert {
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .alert-success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .alert-error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        .alert-info { background: #cce5ff; color: #004085; border-left: 4px solid #007bff; }
+
+        /* CARD */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+        .card-header h3 { font-size: 16px; color: #2d3748; font-weight: 600; }
+        .card-header .see-all { color: #667eea; text-decoration: none; font-size: 13px; font-weight: 500; }
+        .card-header .see-all:hover { text-decoration: underline; }
+        body.dark-mode .card-header h3 { color: #e2e8f0; }
+        body.dark-mode .card-header { border-bottom-color: #4a5568; }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #f0f2f5; }
+        th { color: #718096; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        tr:hover { background: #f7fafc; }
+        body.dark-mode th { color: #a0aec0; }
+        body.dark-mode td { border-bottom-color: #4a5568; }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-block;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { transform: scale(1.02); }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a6fd6; }
+        .btn-success { background: #48bb78; color: white; }
+        .btn-success:hover { background: #38a169; }
+        .btn-warning { background: #ed8936; color: white; }
+        .btn-warning:hover { background: #dd6b20; }
+        .btn-danger { background: #fc8181; color: white; }
+        .btn-danger:hover { background: #e53e3e; }
+        .btn-secondary { background: #a0aec0; color: white; }
+        .btn-secondary:hover { background: #718096; }
+        .btn-sm { padding: 4px 12px; font-size: 12px; border-radius: 20px; }
+
+        /* FORM */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; }
+        body.dark-mode .form-group label { color: #e2e8f0; }
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background: white;
+            color: #333;
+        }
+        body.dark-mode .form-control {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-color: #4a5568;
+        }
+        .form-control:focus { border-color: #667eea; outline: none; }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #a0aec0;
+            font-size: 12px;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 20px;
+            transition: border-color 0.3s;
+        }
+        .footer .version { font-size: 11px; opacity: 0.6; }
+
+        /* ===== STATS GRID - FIX 4 KOLOM ===== */
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stats-grid .stat-card {
+            flex: 1 1 200px;
+            min-width: 180px;
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+        .stats-grid .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.10);
+        }
+        .stats-grid .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+        .stats-grid .stat-card .label {
+            color: #718096;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .stats-grid .stat-card .icon {
+            float: right;
+            font-size: 28px;
+            opacity: 0.3;
+        }
+        .stats-grid .stat-card.green { border-left-color: #48bb78; }
+        .stats-grid .stat-card.orange { border-left-color: #ed8936; }
+        .stats-grid .stat-card.purple { border-left-color: #9f7aea; }
+        .stats-grid .stat-card.blue { border-left-color: #4299e1; }
+
+        /* DARK MODE STATS */
+        body.dark-mode .stats-grid .stat-card {
+            background: #2d3748;
+            color: #e2e8f0;
+        }
+        body.dark-mode .stats-grid .stat-card .number {
+            color: #e2e8f0;
+        }
+        body.dark-mode .stats-grid .stat-card .label {
+            color: #a0aec0;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .topbar { flex-direction: column; gap: 10px; padding: 12px 16px; }
+            .topbar .user-info { justify-content: center; }
+            .navbar { justify-content: center; }
+            .wrapper { padding: 12px; }
+            .dropdown-menu { left: auto; right: 0; }
+            .stats-grid .stat-card { flex: 1 1 100%; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid .stat-card { flex: 1 1 100%; }
+        }
+    </style>
+</head>
+<body>
+<div id="loading">
+    <div class="spinner">
+        <div class="icon">🏥</div>
+        <p>Loading...</p>
+    </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="brand">🏥 Praktek dr. Galih <span>| Rekam Medis</span></div>
+    <div class="user-info">
+        <span class="avatar">👤</span>
+        <span><strong>{{ user.username }}</strong></span>
+        <span class="role-badge">
+            {% if user.profile.role == 'dokter' %}👨‍⚕️ Dokter{% else %}📋 Staf{% endif %}
+        </span>
+        <button class="dark-toggle" onclick="toggleDarkMode()" id="darkToggle">🌙</button>
+        <form action="{% url 'logout' %}" method="post" style="display: inline; margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">🚪 Logout</button>
+        </form>
+    </div>
+</div>
+
+<!-- WRAPPER -->
+<div class="wrapper">
+    <!-- NAVBAR -->
+    <div class="navbar">
+        <a href="/" class="{% if request.path == '/' %}active{% endif %}">🏠 Dashboard</a>
+        <a href="{% url 'daftar_pasien' %}" class="{% if 'pasien' in request.path and 'tambah' not in request.path and 'edit' not in request.path %}active{% endif %}">📋 Pasien</a>
+        <a href="{% url 'tambah_pasien' %}" class="{% if 'tambah' in request.path %}active{% endif %}">➕ Tambah</a>
+        <a href="{% url 'cari_pasien' %}" class="{% if 'cari' in request.path %}active{% endif %}">🔍 Cari</a>
+        {% if user.profile.role == 'dokter' %}
+        <a href="{% url 'kelola_obat' %}" class="{% if 'obat' in request.path %}active{% endif %}">💊 Obat</a>
+        <a href="{% url 'kelola_icd10' %}" class="{% if 'icd10' in request.path %}active{% endif %}">📚 ICD-10</a>
+        <a href="{% url 'kelola_user' %}" class="{% if 'users' in request.path %}active{% endif %}">👥 User</a>
+        <div class="dropdown">
+            <span class="dropdown-toggle">📊 Laporan ▼</span>
+            <div class="dropdown-menu">
+                <a href="{% url 'export_pasien' %}">📤 Export Pasien</a>
+                <a href="{% url 'export_obat' %}">📤 Export Obat</a>
+                <a href="{% url 'export_icd10' %}">📤 Export ICD-10</a>
+                <a href="{% url 'import_pasien' %}">📥 Import Pasien</a>
+                <hr>
+                <a href="{% url 'laporan_penyakit' %}">🏆 10 Penyakit Terbanyak</a>
+                <a href="{% url 'laporan_obat' %}">🏆 10 Obat Terbanyak</a>
+                <a href="{% url 'laporan_kunjungan' %}">📋 Laporan Kunjungan</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- MESSAGES -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- CONTENT -->
+    {% block content %}
+    {% endblock %}
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    &copy; 2026 Praktek Mandiri dr. Galih — v2.0 — Jl. Raya Sengkol Mantang, Lombok Tengah
+    <br>
+    <span class="version">Powered by Django | Rekam Medis Digital</span>
+</div>
+
+<script>
+    // DARK MODE
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const toggle = document.getElementById('darkToggle');
+        if (document.body.classList.contains('dark-mode')) {
+            toggle.textContent = '☀️';
+            localStorage.setItem('darkMode', 'true');
+        } else {
+            toggle.textContent = '🌙';
+            localStorage.setItem('darkMode', 'false');
+        }
+    }
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkToggle').textContent = '☀️';
+    }
+
+    // TOAST
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // LOADING
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            document.getElementById('loading').classList.add('hidden');
+        }, 500);
+    });
+</script>
+</body>
+</html>
